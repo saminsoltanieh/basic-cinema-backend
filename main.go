@@ -5,6 +5,7 @@ import (
 	"cinema/controllers"
 	"cinema/routes"
 	"cinema/superadmin"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,11 +20,14 @@ func main() {
 	routes.MovieRoutes(app)
 	routes.ShowtimeRoutes(app)
 	routes.SeatRoutes(app)
-	app.Listen(":3001")
 	go func() {
 		for {
 			controllers.Deactiver()
 			time.Sleep(1 * time.Minute)
 		}
 	}()
+	if err := app.Listen(":3001"); err != nil {
+		panic(fmt.Errorf("failed to start server: %v", err))
+	}
+
 }
