@@ -1,0 +1,26 @@
+package middleware
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func AdminOnly() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		user := c.Locals("user")
+		if user == nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Unauthorized",
+			})
+		}
+
+		claims := user.(jwt.MapClaims)
+		role := claims["role"].(string)
+		if role != "admin" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "admin access only",
+			})
+		}
+		return c.Next()
+	}
+}
