@@ -17,12 +17,12 @@ func CreateMovie(c *fiber.Ctx) error {
 	}
 	if err := config.DB.Create(&movie).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"error": "cannot creat movie",
+			"error": "cannot create movie",
 		})
 	}
 	return c.Status(201).JSON(movie)
 }
-func GetMovie(c *fiber.Ctx) error {
+func GetMovies(c *fiber.Ctx) error {
 	var movies []models.Movie
 	if err := config.DB.Find(&movies).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Movie not found"})
