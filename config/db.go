@@ -4,7 +4,10 @@ package config
 import (
 	"cinema/models"
 	"fmt"
+	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -14,12 +17,16 @@ var DB *gorm.DB
 
 // connect to db
 func ConnectDB() {
+	//does env exist
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 	//database connection setting
-	host := "localhost"
-	port := "5432"
-	user := "postgres"
-	password := "samin1383"
-	dbname := "cinema_db"
+	host := getEnv("DB_HOST", "localhost")
+	port := getEnv("DB_PORT", "5432")
+	user := getEnv("DB_USER", "")
+	password := getEnv("DB_PASSWORD", "")
+	dbname := getEnv("DB_NAME", "")
 	//data source name
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	//open a connection
@@ -36,4 +43,10 @@ func ConnectDB() {
 	DB.AutoMigrate(&models.Movie{})
 	DB.AutoMigrate(&models.Showtime{})
 	DB.AutoMigrate(&models.Booking{})
+}
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
 }
