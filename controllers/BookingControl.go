@@ -56,9 +56,29 @@ func ReserveSeats(c *fiber.Ctx) error {
 	if err := c.BodyParser(&data); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse request"})
 	}
+	if data.ShowtimeID == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "enter showtime_id"})
+	}
+	if len(data.SeatIDs) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "you should choose a seat"})
+	}
+	seen := make(map[uint]bool)
+	for _, seatID := range data.SeatIDs {
+		if seen[seatID] {
+			return c.Status(400).JSON(fiber.Map{
+				"error": "cannot choose a seat again",
+			})
+		}
+		seen[seatID] = true
+	}
 	var showtime models.Showtime
 	if err := config.DB.First(&showtime, data.ShowtimeID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "showtime not found"})
+	}
+	if !showtime.IsActive {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "this showtime is expired",
+		})
 	}
 	type ReservedResponse struct {
 		SeatID     uint `json:"seat_id"`
@@ -87,14 +107,10 @@ func ReserveSeats(c *fiber.Ctx) error {
 			ShowtimeID: data.ShowtimeID,
 		})
 	}
-	if !showtime.IsActive {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "this showtime is expired",
-		})
-	}
+
 	return c.JSON(fiber.Map{
 		"reserved":       reserved,
-		"alreade_booked": alreadyBooked,
+		"already_booked": alreadyBooked,
 	})
 }
 func GetMyBooking(c *fiber.Ctx) error {
