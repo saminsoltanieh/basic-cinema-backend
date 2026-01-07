@@ -30,7 +30,7 @@ func CreateShowtime(c *fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(showtime)
 }
-func GetShowtime(c *fiber.Ctx) error {
+func GetShowtimes(c *fiber.Ctx) error {
 	var showtimes []models.Showtime
 	if err := config.DB.Preload("Movie").Preload("Hall").Where("is_active=?", true).Find(&showtimes).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -59,6 +59,12 @@ func UpdateShowtime(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "cannot parse showtime",
 		})
+	}
+	var conflict models.Showtime
+	err := config.DB.
+		Where("hall_id=? AND id!=? AND start_time<? AND end_time<?", showtime.HallID, showtime.ID, showtime.EndTime, showtime.StartTime).First(&conflict).Error
+	if err == nil {
+		return c.Status(400).JSON(fiber.Map{"error": "hall is already booked in this time"})
 	}
 	config.DB.Save(&showtime)
 	return c.JSON(showtime)
