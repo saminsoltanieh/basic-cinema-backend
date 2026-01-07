@@ -32,7 +32,7 @@ func IsSuperAdmin() fiber.Handler {
 		}
 
 		if !user.IsSuperAdmin {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "only superadmin can perform this action"})
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "only superadmin can perform this action"})
 		}
 
 		return c.Next()
