@@ -18,5 +18,10 @@ func MakeAdmin(c *fiber.Ctx) error {
 	}
 	user.Role = "admin"
 	config.DB.Save(&user)
-	return c.JSON(fiber.Map{"message": "user promoted to admin"})
+	return c.JSON(fiber.Map{"message": "user promoted to admin",
+		"user": fiber.Map{
+			"id":    user.ID,
+			"email": user.Email,
+			"role":  user.Role,
+		}})
 }
