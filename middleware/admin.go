@@ -14,9 +14,17 @@ func AdminOnly() fiber.Handler {
 			})
 		}
 
-		claims := user.(jwt.MapClaims)
-		role := claims["role"].(string)
-		if role != "admin" {
+		claims, ok := user.(jwt.MapClaims)
+		if !ok {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "cannot finish the process of token"})
+		}
+		role, ok := claims["role"].(string)
+		if !ok {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "invalid role",
+			})
+		}
+		if role != "admin" && role != "superadmin" {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "admin access only",
 			})
