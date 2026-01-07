@@ -6,6 +6,6 @@ import (
 
 type Hall struct {
 	gorm.Model
-	Name  string `json:"name"`
+	Name  string `json:"name" gorm:"unique"`
 	Seats []Seat `gorm:"foreignKey:HallID"`
 }
