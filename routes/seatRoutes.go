@@ -8,8 +8,8 @@ import (
 )
 
 func SeatRoutes(app *fiber.App) {
-	app.Get("/seat", controllers.GetSeat)
-	app.Get("/seat/:hall_id", controllers.GetSeatByID)
+	app.Get("/seat", controllers.GetSeats)
+	app.Get("/seat/:hall_id", controllers.GetSeatByHallID)
 	app.Get("/showtime/:showtimes_id/seats", controllers.GetSeatsByShowtime)
 	admin := app.Group("/admin", middleware.Protected(), middleware.AdminOnly())
 	admin.Post("/seat", controllers.CreateSeat)

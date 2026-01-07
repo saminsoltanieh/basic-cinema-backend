@@ -3,12 +3,23 @@ package controllers
 import (
 	"cinema/config"
 	"cinema/models"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var jwtSecret []byte
+
+func init() {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET is not set in .env")
+	}
+	jwtSecret = []byte(secret)
+}
 
 // register new user
 func RegisterUser(c *fiber.Ctx) error {
@@ -17,6 +28,16 @@ func RegisterUser(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "cannot parse json",
 		})
+	}
+	if user.Email == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "you should enter an email"})
+	}
+	if len(user.Password) < 4 {
+		return c.Status(400).JSON(fiber.Map{"error": "your password should be at least 4"})
+	}
+	var existingUser models.User
+	if err := config.DB.Where("email=?", user.Email).First(&existingUser).Error; err == nil {
+		return c.Status(409).JSON(fiber.Map{"error": "It is already exists"})
 	}
 	//hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword(
@@ -33,14 +54,16 @@ func RegisterUser(c *fiber.Ctx) error {
 
 	if err := config.DB.Create(&user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"error": "cannot creat user",
+			"error": "cannot create user",
 		})
 	}
-	return c.Status(201).JSON(user)
+	return c.Status(201).JSON(fiber.Map{
+		"id":      user.ID,
+		"email":   user.Email,
+		"role":    user.Role,
+		"message": "ok",
+	})
 }
-
-// verify jwt token
-var jwtSecret = []byte("mysecretkey")
 
 // login
 func LoginUser(c *fiber.Ctx) error {

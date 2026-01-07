@@ -8,8 +8,8 @@ import (
 )
 
 func MovieRoutes(app *fiber.App) {
-	app.Get("/movies", controllers.GetMovie)
-	app.Get("/movies/:id", controllers.GetMovie)
+	app.Get("/movies", controllers.GetMovies)
+	app.Get("/movies/:id", controllers.GetMovieByID)
 	admin := app.Group("/admin", middleware.Protected(), middleware.AdminOnly())
 	admin.Post("/movies", controllers.CreateMovie)
 	admin.Put("/movies/:id", controllers.UpdateMovie)
