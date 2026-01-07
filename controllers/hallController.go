@@ -14,6 +14,9 @@ func CreateHall(c *fiber.Ctx) error {
 	if err := c.BodyParser(&hall); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
+	if hall.Name == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "You should enter a name"})
+	}
 	if err := config.DB.Create(&hall).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "cannot creat hall"})
 	}
@@ -21,7 +24,7 @@ func CreateHall(c *fiber.Ctx) error {
 }
 
 // get all halls
-func GetHall(c *fiber.Ctx) error {
+func GetHalls(c *fiber.Ctx) error {
 	var halls []models.Hall
 	result := config.DB.Find(&halls)
 	if result.Error != nil {
