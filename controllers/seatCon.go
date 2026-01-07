@@ -13,6 +13,15 @@ func CreateSeat(c *fiber.Ctx) error {
 	if err := c.BodyParser(&seat); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "cannot parse JSON"})
 	}
+	if seat.Number <= 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "number should be positive"})
+	}
+	if seat.Row == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "row cannot be empty"})
+	}
+	if seat.HallID == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "enter a correct hall id"})
+	}
 	if err := config.DB.Create(&seat).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "cannot create seat"})
 	}
@@ -20,7 +29,7 @@ func CreateSeat(c *fiber.Ctx) error {
 }
 
 // get seat
-func GetSeat(c *fiber.Ctx) error {
+func GetSeats(c *fiber.Ctx) error {
 	var seats []models.Seat
 	if err := config.DB.Find(&seats).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch seats"})
@@ -29,7 +38,7 @@ func GetSeat(c *fiber.Ctx) error {
 }
 
 // get seat by id
-func GetSeatByID(c *fiber.Ctx) error {
+func GetSeatByHallID(c *fiber.Ctx) error {
 	hallID := c.Params("hall_id")
 	var seats []models.Seat
 	if err := config.DB.Where("hall_id=?", hallID).Find(&seats).Error; err != nil {
