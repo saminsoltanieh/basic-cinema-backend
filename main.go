@@ -6,12 +6,19 @@ import (
 	"cinema/routes"
 	"cinema/superadmin"
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	fmt.Println("JWT_SECRET =", os.Getenv("JWT_SECRET"))
 	config.ConnectDB()
 	superadmin.CreateSuperAdmin()
 	app := fiber.New()
