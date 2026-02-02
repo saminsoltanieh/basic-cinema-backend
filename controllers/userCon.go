@@ -3,6 +3,7 @@ package controllers
 import (
 	"cinema/config"
 	"cinema/models"
+	"fmt"
 	"os"
 	"time"
 
@@ -10,16 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var jwtSecret []byte
-
-func init() {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		panic("JWT_SECRET is not set in .env")
-	}
-	jwtSecret = []byte(secret)
-}
 
 // register new user
 func RegisterUser(c *fiber.Ctx) error {
@@ -32,9 +23,9 @@ func RegisterUser(c *fiber.Ctx) error {
 	if user.Email == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "you should enter an email"})
 	}
-	if len(user.Password) < 4 {
-		return c.Status(400).JSON(fiber.Map{"error": "your password should be at least 4"})
-	}
+	// if len(user.Password) < 4 {
+	// 	return c.Status(400).JSON(fiber.Map{"error": "your password should be at least 4"})
+	// }
 	var existingUser models.User
 	if err := config.DB.Where("email=?", user.Email).First(&existingUser).Error; err == nil {
 		return c.Status(409).JSON(fiber.Map{"error": "It is already exists"})
@@ -86,13 +77,21 @@ func LoginUser(c *fiber.Ctx) error {
 			"error": "invalid credentials",
 		})
 	}
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "JWT_SECRET is not configured",
+		})
+	}
 	//making jwt
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   user.ID,
 		"role": user.Role,
 		"exp":  time.Now().Add(time.Hour * 72).Unix(),
 	})
-	tokenString, err := token.SignedString(jwtSecret)
+	fmt.Println(secret)
+	//tokenString, err := token.SignedString(secret)//before
+	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "cannot generate token"})
 	}
